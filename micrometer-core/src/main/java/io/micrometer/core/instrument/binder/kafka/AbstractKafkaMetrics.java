@@ -106,7 +106,7 @@ public abstract class AbstractKafkaMetrics implements MeterBinder {
         registerGaugeForObject(registry, o, jmxMetricName, sanitize(jmxMetricName), allTags, description, baseUnit);
     }
 
-    protected void registerFunctionCounterForObject(MeterRegistry registry, ObjectName o, String jmxMetricName, Tags allTags, String description, @Nullable String baseUnit) {
+    protected void registerCounterForObject(MeterRegistry registry, ObjectName o, String jmxMetricName, Tags allTags, String description, @Nullable String baseUnit) {
         final AtomicReference<FunctionCounter> counter = new AtomicReference<>();
         counter.set(FunctionCounter
                 .builder(getMetricNamePrefix() + sanitize(jmxMetricName), mBeanServer,
@@ -126,7 +126,7 @@ public abstract class AbstractKafkaMetrics implements MeterBinder {
                 .register(registry));
     }
 
-    protected ToDoubleFunction<MBeanServer> getJmxAttribute(MeterRegistry registry, AtomicReference<? extends Meter> meter,
+    private ToDoubleFunction<MBeanServer> getJmxAttribute(MeterRegistry registry, AtomicReference<? extends Meter> meter,
                                                           ObjectName o, String jmxMetricName) {
         return s -> safeDouble(jmxMetricName, () -> {
             if (!s.isRegistered(o)) {

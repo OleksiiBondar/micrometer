@@ -67,9 +67,9 @@ public class KafkaConsumerMetrics extends AbstractKafkaMetrics {
             registerGaugeForObject(registry, o, "fetch-size-max", tags, "The maximum number of bytes fetched per request.", "bytes");
             registerGaugeForObject(registry, o, "records-per-request-avg", tags, "The average number of records in each request.", "records");
 
-            registerFunctionCounterForObject(registry, o, "fetch-total", tags, "The number of fetch requests.", "requests");
-            registerFunctionCounterForObject(registry, o, "bytes-consumed-total", tags, "The total number of bytes consumed.", "bytes");
-            registerFunctionCounterForObject(registry, o, "records-consumed-total", tags, "The total number of records consumed.", "records");
+            registerCounterForObject(registry, o, "fetch-total", tags, "The number of fetch requests.", "requests");
+            registerCounterForObject(registry, o, "bytes-consumed-total", tags, "The total number of bytes consumed.", "bytes");
+            registerCounterForObject(registry, o, "records-consumed-total", tags, "The total number of records consumed.", "records");
 
             if (kafkaMajorVersion(tags) >= 2) {
                 // KAFKA-6184
