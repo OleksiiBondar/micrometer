@@ -64,6 +64,8 @@ public class KafkaProducerMetrics extends AbstractKafkaMetrics {
             registerGaugeForObject(registry, o, "response-rate", tags, "The average number of records in each request.", "records");
             registerGaugeForObject(registry, o, "incoming-byte-rate", tags, "The average number of incoming bytes received per second from all servers.", "bytes");
             registerGaugeForObject(registry, o, "outgoing-byte-rate", tags, "The average number of outgoing bytes sent per second to all servers.", "bytes");
+            registerGaugeForObject(registry, o, "record-size-avg", tags, "The average record size.", "bytes");
+            registerGaugeForObject(registry, o, "record-size-max", tags, "The maximum record size.", "bytes");
             
             registerGaugeForObject(registry, o, "connection-count", tags, "The current number of active connections.", "connections");
             registerGaugeForObject(registry, o, "connection-creation-rate", tags, "New connections established per second in the window.", "connections");
@@ -73,14 +75,18 @@ public class KafkaProducerMetrics extends AbstractKafkaMetrics {
             registerGaugeForObject(registry, o, "io-wait-ratio", tags, "The fraction of time the I/O thread spent waiting.", null);
             registerGaugeForObject(registry, o, "select-rate", tags, "Number of times the I/O layer checked for new I/O to perform per second.", null);
             registerGaugeForObject(registry, o, "io-wait-time-ns-avg", tags, "The average length of time the I/O thread spent waiting for a socket ready for reads or writes in nanoseconds.", "ns");
+        
+            registerCounterForObject(registry, o, "record-error-total", tags, "The total number of record sends that resulted in errors.", "records");
+            registerCounterForObject(registry, o, "record-send-total", tags, "The total number of records sent.", "records");
         });
         
         registerMetricsEventually("producer-topic-metrics", (o, tags) -> {
-            registerGaugeForObject(registry, o, "byte-rate", tags, "The average request latency in ms.", "bytes");
+            registerGaugeForObject(registry, o, "byte-rate", tags, "The average number of bytes sent per second for a topic.", "bytes");
             registerGaugeForObject(registry, o, "record-send-rate", tags, "The average number of records sent per second for a topic.", "records");
             registerGaugeForObject(registry, o, "compression-rate", tags, "The average compression rate of record batches for a topic.", null);
             registerGaugeForObject(registry, o, "record-retry-rate", tags, "The average per-second number of retried record sends for a topic.", null);
             registerGaugeForObject(registry, o, "record-error-rate", tags, "The average per-second number of record sends that resulted in errors for a topic.", "records");
+            
         });
         
     }
