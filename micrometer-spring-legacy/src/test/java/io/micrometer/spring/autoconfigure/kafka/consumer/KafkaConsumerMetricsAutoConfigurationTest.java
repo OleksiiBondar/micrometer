@@ -29,9 +29,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
 /**
- * Tests for {@link KafkaMetricsAutoConfiguration}.
+ * Tests for {@link KafkaConsumerMetricsAutoConfiguration}.
  */
-public class KafkaMetricsAutoConfigurationTest {
+class KafkaConsumerMetricsAutoConfigurationTest {
 
     private final AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext();
 
@@ -43,19 +43,19 @@ public class KafkaMetricsAutoConfigurationTest {
     }
 
     @Test
-    public void whenThereIsNoMBeanServerAutoConfigurationBacksOff() {
+    void whenThereIsNoMBeanServerAutoConfigurationBacksOff() {
         registerAndRefresh();
         assertThat(context.getBeansOfType(KafkaConsumerMetrics.class)).isEmpty();
     }
 
     @Test
-    public void whenThereIsAnMBeanServerKafkaConsumerMetricsIsConfigured() {
+    void whenThereIsAnMBeanServerKafkaConsumerMetricsIsConfigured() {
         registerAndRefresh(JmxAutoConfiguration.class);
         assertThat(context.getBean(KafkaConsumerMetrics.class)).isNotNull();
     }
 
     @Test
-    public void allowsCustomKafkaConsumerMetricsToBeUsed() {
+    void allowsCustomKafkaConsumerMetricsToBeUsed() {
         registerAndRefresh(JmxAutoConfiguration.class, CustomKafkaConsumerMetricsConfiguration.class);
         assertThat(context.getBean(KafkaConsumerMetrics.class)).isEqualTo(context.getBean("customKafkaConsumerMetrics"));
     }
@@ -64,7 +64,7 @@ public class KafkaMetricsAutoConfigurationTest {
         if (configurationClasses.length != 0) {
             this.context.register(configurationClasses);
         }
-        this.context.register(MeterRegistryConfiguration.class, KafkaMetricsAutoConfiguration.class);
+        this.context.register(MeterRegistryConfiguration.class, KafkaConsumerMetricsAutoConfiguration.class);
         this.context.refresh();
     }
 
@@ -75,7 +75,6 @@ public class KafkaMetricsAutoConfigurationTest {
         public MeterRegistry meterRegistry() {
             return mock(MeterRegistry.class);
         }
-
     }
 
     @Configuration
@@ -85,7 +84,6 @@ public class KafkaMetricsAutoConfigurationTest {
         public KafkaConsumerMetrics customKafkaConsumerMetrics() {
             return new KafkaConsumerMetrics();
         }
-
     }
 
 }

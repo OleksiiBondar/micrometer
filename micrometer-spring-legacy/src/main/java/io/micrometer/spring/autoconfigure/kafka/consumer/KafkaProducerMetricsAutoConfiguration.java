@@ -24,31 +24,31 @@ import org.springframework.boot.autoconfigure.jmx.JmxAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import io.micrometer.core.instrument.MeterRegistry;
-import io.micrometer.core.instrument.binder.kafka.KafkaConsumerMetrics;
-import io.micrometer.spring.autoconfigure.MetricsAutoConfiguration;
-
-import javax.management.MBeanServer;
 import java.util.Collections;
 
+import javax.management.MBeanServer;
+
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.binder.kafka.KafkaProducerMetrics;
+import io.micrometer.spring.autoconfigure.MetricsAutoConfiguration;
+
 /**
- * Configuration for {@link KafkaConsumerMetrics}.
+ * Configuration for {@link KafkaProducerMetrics}.
  *
- * @author Wardha Perinkadakattu
- * @author Chin Huang
+ * @author Oleksii Bondar
  */
 @Configuration
 @AutoConfigureAfter({ MetricsAutoConfiguration.class, JmxAutoConfiguration.class })
-@ConditionalOnClass(KafkaConsumerMetrics.class)
+@ConditionalOnClass(KafkaProducerMetrics.class)
 @ConditionalOnBean(MeterRegistry.class)
-public class KafkaMetricsAutoConfiguration {
-
+public class KafkaProducerMetricsAutoConfiguration {
+    
     @Bean
     @ConditionalOnMissingBean
     @ConditionalOnBean(MBeanServer.class)
-    @ConditionalOnProperty(value = "management.metrics.kafka.consumer.enabled", matchIfMissing = true)
-    public KafkaConsumerMetrics kafkaConsumerMetrics(MBeanServer mbeanServer) {
-        return new KafkaConsumerMetrics(mbeanServer, Collections.emptyList());
+    @ConditionalOnProperty(value = "management.metrics.kafka.producer.enabled", matchIfMissing = true)
+    public KafkaProducerMetrics kafkaProducerMetrics(MBeanServer mbeanServer) {
+        return new KafkaProducerMetrics(mbeanServer, Collections.emptyList());
     }
 
 }
