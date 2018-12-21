@@ -15,6 +15,10 @@
  */
 package io.micrometer.spring.autoconfigure.kafka.consumer;
 
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.binder.kafka.KafkaProducerMetrics;
+import io.micrometer.spring.autoconfigure.MetricsAutoConfiguration;
+
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
@@ -24,13 +28,9 @@ import org.springframework.boot.autoconfigure.jmx.JmxAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import java.util.Collections;
-
 import javax.management.MBeanServer;
 
-import io.micrometer.core.instrument.MeterRegistry;
-import io.micrometer.core.instrument.binder.kafka.KafkaProducerMetrics;
-import io.micrometer.spring.autoconfigure.MetricsAutoConfiguration;
+import java.util.Collections;
 
 /**
  * Configuration for {@link KafkaProducerMetrics}.
