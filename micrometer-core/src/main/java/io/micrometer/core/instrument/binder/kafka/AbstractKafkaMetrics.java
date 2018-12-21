@@ -74,6 +74,10 @@ public abstract class AbstractKafkaMetrics implements MeterBinder {
         this.tags = tags;
     }
     
+    protected boolean isSupportedObjectName(ObjectName obj, String type) {
+        return obj.getDomain().equals(getJmxDomain()) && obj.getKeyProperty("type").equals(type);
+    }
+    
     protected int kafkaMajorVersion(Tags tags) {
         if (kafkaMajorVersion == null) {
             kafkaMajorVersion = tags.stream().filter(t -> "client.id".equals(t.getKey())).findAny()
@@ -157,7 +161,7 @@ public abstract class AbstractKafkaMetrics implements MeterBinder {
     }
 
     /**
-     * This notification listener should remain indefinitely since new Kafka consumers can be added at any time.
+     * This notification listener should remain indefinitely since new Kafka consumers/producers can be added at any time.
      *
      * @param type      The Kafka JMX type to listen for.
      * @param perObject Metric registration handler when a new MBean is created.
@@ -170,11 +174,11 @@ public abstract class AbstractKafkaMetrics implements MeterBinder {
         };
 
         NotificationFilter filter = (NotificationFilter) notification -> {
-            if (!MBeanServerNotification.REGISTRATION_NOTIFICATION.equals(notification.getType()))
+            if (!MBeanServerNotification.REGISTRATION_NOTIFICATION.equals(notification.getType())) {
                 return false;
+            }
             ObjectName obj = ((MBeanServerNotification) notification).getMBeanName();
-            return obj.getDomain().equals(getJmxDomain()) && obj.getKeyProperty("type").equals(type) &&
-                    obj.getKeyProperty("partition") == null && obj.getKeyProperty("topic") == null;
+            return isSupportedObjectName(obj, type);
         };
 
         try {

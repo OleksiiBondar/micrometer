@@ -39,7 +39,7 @@ import java.util.Collections;
  * @author Chin Huang
  */
 @Configuration
-@AutoConfigureAfter({ MetricsAutoConfiguration.class, JmxAutoConfiguration.class })
+@AutoConfigureAfter({MetricsAutoConfiguration.class, JmxAutoConfiguration.class})
 @ConditionalOnClass(KafkaConsumerMetrics.class)
 @ConditionalOnBean(MeterRegistry.class)
 public class KafkaConsumerMetricsAutoConfiguration {

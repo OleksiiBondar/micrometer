@@ -12,11 +12,11 @@
  */
 package io.micrometer.core.instrument.binder.kafka;
 
+import io.micrometer.core.annotation.Incubating;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
 import io.micrometer.core.lang.NonNullApi;
 import io.micrometer.core.lang.NonNullFields;
-import io.micrometer.core.lang.Nullable;
 
 import javax.management.MBeanServer;
 
@@ -32,15 +32,13 @@ import static java.util.Collections.emptyList;
  * @see <a href="https://docs.confluent.io/current/kafka/monitoring.html#producer-metrics">Kakfa monitoring
  *      documentation</a>
  */
+@Incubating(since = "1.2.0")
 @NonNullApi
 @NonNullFields
 public class KafkaProducerMetrics extends AbstractKafkaMetrics {
 
     private static final String JMX_DOMAIN = "kafka.producer";
     private static final String METRIC_NAME_PREFIX = "kafka.producer.";
-
-    @Nullable
-    private Integer kafkaMajorVersion;
 
     public KafkaProducerMetrics() {
         this(emptyList());
@@ -88,7 +86,6 @@ public class KafkaProducerMetrics extends AbstractKafkaMetrics {
             registerGaugeForObject(registry, o, "record-error-rate", tags, "The average per-second number of record sends that resulted in errors for a topic.", "records");
             
         });
-        
     }
 
     @Override

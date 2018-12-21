@@ -23,6 +23,7 @@ import io.micrometer.core.lang.NonNullApi;
 import io.micrometer.core.lang.NonNullFields;
 
 import javax.management.MBeanServer;
+import javax.management.ObjectName;
 
 import static java.util.Collections.emptyList;
 
@@ -135,6 +136,12 @@ public class KafkaConsumerMetrics extends AbstractKafkaMetrics {
     @Override
     public String getMetricNamePrefix() {
         return METRIC_NAME_PREFIX;
+    }
+    
+    @Override
+    protected boolean isSupportedObjectName(ObjectName obj, String type) {
+        return super.isSupportedObjectName(obj, type) && obj.getKeyProperty("partition") == null && obj
+                .getKeyProperty("topic") == null;
     }
 
 }

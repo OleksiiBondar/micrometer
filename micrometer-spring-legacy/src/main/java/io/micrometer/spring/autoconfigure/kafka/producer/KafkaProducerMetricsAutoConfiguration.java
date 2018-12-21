@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.micrometer.spring.autoconfigure.kafka.consumer;
+package io.micrometer.spring.autoconfigure.kafka.producer;
 
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.binder.kafka.KafkaProducerMetrics;
@@ -38,11 +38,11 @@ import java.util.Collections;
  * @author Oleksii Bondar
  */
 @Configuration
-@AutoConfigureAfter({ MetricsAutoConfiguration.class, JmxAutoConfiguration.class })
+@AutoConfigureAfter({MetricsAutoConfiguration.class, JmxAutoConfiguration.class})
 @ConditionalOnClass(KafkaProducerMetrics.class)
 @ConditionalOnBean(MeterRegistry.class)
 public class KafkaProducerMetricsAutoConfiguration {
-    
+
     @Bean
     @ConditionalOnMissingBean
     @ConditionalOnBean(MBeanServer.class)
