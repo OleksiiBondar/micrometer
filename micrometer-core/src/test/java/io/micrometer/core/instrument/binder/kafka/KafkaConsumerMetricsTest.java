@@ -18,6 +18,7 @@ package io.micrometer.core.instrument.binder.kafka;
 import io.micrometer.core.instrument.ImmutableTag;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
+import io.micrometer.core.instrument.Tags;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 
 import org.apache.kafka.clients.consumer.Consumer;
@@ -34,9 +35,12 @@ import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 class KafkaConsumerMetricsTest {
     private final static String TOPIC = "my-example-topic";
     private final static String BOOTSTRAP_SERVERS = "localhost:9092";
+    private static int consumerCount = 0;
 
     private List<Tag> tags = Arrays.asList(new ImmutableTag("app", "myApp"), new ImmutableTag("version", "1"));
     private KafkaConsumerMetrics kafkaConsumerMetrics = new KafkaConsumerMetrics(tags);
@@ -60,6 +64,19 @@ class KafkaConsumerMetricsTest {
     }
 
     @Test
+    void metricsReportedPerMultipleConsumers() {
+        try (Consumer<Long, String> consumer = createConsumer(); Consumer<Long, String> consumer2 = createConsumer()) {
+
+            MeterRegistry registry = new SimpleMeterRegistry();
+            kafkaConsumerMetrics.bindTo(registry);
+
+            // fetch metrics
+            registry.get("kafka.consumer.records.lag.max").tag("client.id", "consumer-" + consumerCount).gauge();
+            registry.get("kafka.consumer.records.lag.max").tag("client.id", "consumer-" + (consumerCount - 1)).gauge();
+        }
+    }
+
+    @Test
     void newConsumersAreDiscoveredByListener() throws InterruptedException {
         MeterRegistry registry = new SimpleMeterRegistry();
         kafkaConsumerMetrics.bindTo(registry);
@@ -75,6 +92,29 @@ class KafkaConsumerMetricsTest {
         }
     }
 
+    @Test
+    void verifyKafkaMajorVersion() {
+        try (Consumer<Long, String> consumer = createConsumer()) {
+            Tags tags = Tags.of("client.id", "consumer-" + consumerCount);
+            assertThat(kafkaConsumerMetrics.kafkaMajorVersion(tags)).isGreaterThanOrEqualTo(2);
+        }
+    }
+
+    @Test
+    void returnsNegativeKafkaMajorVersionWhenMBeanInstanceNotFound() {
+        try (Consumer<Long, String> consumer = createConsumer()) {
+            Tags tags = Tags.of("client.id", "invalid");
+            assertThat(kafkaConsumerMetrics.kafkaMajorVersion(tags)).isEqualTo(-1);
+        }
+    }
+
+    @Test
+    void returnsNegativeKafkaMajorVersionForEmptyTags() {
+        try (Consumer<Long, String> consumer = createConsumer()) {
+            assertThat(kafkaConsumerMetrics.kafkaMajorVersion(Tags.empty())).isEqualTo(-1);
+        }
+    }
+
     private Consumer<Long, String> createConsumer() {
         Properties props = new Properties();
         props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, BOOTSTRAP_SERVERS);
@@ -84,6 +124,7 @@ class KafkaConsumerMetricsTest {
 
         Consumer<Long, String> consumer = new KafkaConsumer<>(props);
         consumer.subscribe(Collections.singletonList(TOPIC));
+        consumerCount++;
         return consumer;
     }
 
