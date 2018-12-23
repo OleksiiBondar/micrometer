@@ -15,9 +15,11 @@
  */
 package io.micrometer.core.instrument.binder.kafka;
 
+import io.micrometer.core.instrument.ImmutableTag;
 import io.micrometer.core.instrument.MeterRegistry;
-import io.micrometer.core.instrument.Tags;
+import io.micrometer.core.instrument.Tag;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
+
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
@@ -25,54 +27,36 @@ import org.apache.kafka.common.serialization.LongDeserializer;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.junit.jupiter.api.Test;
 
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 class KafkaConsumerMetricsTest {
     private final static String TOPIC = "my-example-topic";
     private final static String BOOTSTRAP_SERVERS = "localhost:9092";
 
-    private final KafkaConsumerMetrics kafkaConsumerMetrics = new KafkaConsumerMetrics();
-
-    private void createConsumer() {
-        Properties props = new Properties();
-        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, BOOTSTRAP_SERVERS);
-        props.put(ConsumerConfig.GROUP_ID_CONFIG, "MicrometerTestConsumer");
-        props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, LongDeserializer.class.getName());
-        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
-
-        Consumer<Long, String> consumer = new KafkaConsumer<>(props);
-        consumer.subscribe(Collections.singletonList(TOPIC));
-    }
+    private List<Tag> tags = Arrays.asList(new ImmutableTag("app", "myApp"), new ImmutableTag("version", "1"));
+    private KafkaConsumerMetrics kafkaConsumerMetrics = new KafkaConsumerMetrics(tags);
 
     @Test
-    void consumerMetrics() {
-        createConsumer();
-        createConsumer();
+    void verifyConsumerMetricsWithExpectedTags() {
+        try (Consumer<Long, String> consumer = createConsumer()) {
 
-        MeterRegistry registry = new SimpleMeterRegistry();
-        kafkaConsumerMetrics.bindTo(registry);
+            MeterRegistry registry = new SimpleMeterRegistry();
+            kafkaConsumerMetrics.bindTo(registry);
 
-        // fetch metrics
-        registry.get("kafka.consumer.records.lag.max").tag("client.id", "consumer-1").gauge();
-        registry.get("kafka.consumer.records.lag.max").tag("client.id", "consumer-2").gauge();
+            // fetch metrics
+            registry.get("kafka.consumer.records.lag.max").tags(tags).gauge();
 
-        // consumer group metrics
-        registry.get("kafka.consumer.assigned.partitions").tag("client.id", "consumer-1").gauge();
+            // consumer coordinator metrics
+            registry.get("kafka.consumer.assigned.partitions").tags(tags).gauge();
 
-        // global connection metrics
-        registry.get("kafka.consumer.connection.count").tag("client.id", "consumer-1").gauge();
-    }
-
-    @Test
-    void kafkaMajorVersion() {
-        createConsumer();
-
-        assertThat(kafkaConsumerMetrics.kafkaMajorVersion(Tags.of("client.id", "consumer-1"))).isGreaterThanOrEqualTo(2);
+            // global connection metrics
+            registry.get("kafka.consumer.connection.count").tags(tags).gauge();
+        }
     }
 
     @Test
@@ -86,8 +70,21 @@ class KafkaConsumerMetricsTest {
                 latch.countDown();
         });
 
-        createConsumer();
-
-        latch.await(10, TimeUnit.SECONDS);
+        try (Consumer<Long, String> consumer = createConsumer()) {
+            latch.await(10, TimeUnit.SECONDS);
+        }
     }
+
+    private Consumer<Long, String> createConsumer() {
+        Properties props = new Properties();
+        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, BOOTSTRAP_SERVERS);
+        props.put(ConsumerConfig.GROUP_ID_CONFIG, "MicrometerTestConsumer");
+        props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, LongDeserializer.class.getName());
+        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
+
+        Consumer<Long, String> consumer = new KafkaConsumer<>(props);
+        consumer.subscribe(Collections.singletonList(TOPIC));
+        return consumer;
+    }
+
 }

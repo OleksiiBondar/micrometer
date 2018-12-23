@@ -60,7 +60,7 @@ public abstract class AbstractKafkaMetrics implements MeterBinder {
     
     private final MBeanServer mBeanServer;
 
-    protected final Iterable<Tag> tags;
+    private final Iterable<Tag> tags;
     
     public abstract String getJmxDomain();
     public abstract String getMetricNamePrefix();
