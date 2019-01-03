@@ -18,7 +18,7 @@ package io.micrometer.core.samples;
 import com.github.charithe.kafka.EphemeralKafkaBroker;
 import com.github.charithe.kafka.KafkaHelper;
 import io.micrometer.core.instrument.MeterRegistry;
-import io.micrometer.core.instrument.binder.kafka.KafkaConsumerMetrics;
+import io.micrometer.core.instrument.binder.kafka.KafkaMetrics;
 import io.micrometer.core.samples.utils.SampleConfig;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.producer.KafkaProducer;
@@ -26,6 +26,7 @@ import org.apache.kafka.clients.producer.ProducerRecord;
 import reactor.core.publisher.Flux;
 
 import java.time.Duration;
+import java.util.Collections;
 
 import static java.util.Collections.singletonList;
 
@@ -38,7 +39,7 @@ public class KafkaMetricsSample {
         KafkaHelper kafkaHelper = KafkaHelper.createFor(broker);
 
         MeterRegistry registry = SampleConfig.myMonitoringSystem();
-        new KafkaConsumerMetrics().bindTo(registry);
+        new KafkaMetrics(Collections.emptyList()).bindTo(registry);
 
         KafkaConsumer<String, String> consumer = kafkaHelper.createStringConsumer();
         KafkaProducer<String, String> producer = kafkaHelper.createStringProducer();

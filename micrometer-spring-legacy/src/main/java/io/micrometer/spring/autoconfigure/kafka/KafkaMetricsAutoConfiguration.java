@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 Pivotal Software, Inc.
+ * Copyright 2019 Pivotal Software, Inc.
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,43 +13,38 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.micrometer.spring.autoconfigure.kafka.consumer;
+package io.micrometer.spring.autoconfigure.kafka;
 
 import io.micrometer.core.instrument.MeterRegistry;
-import io.micrometer.core.instrument.binder.kafka.KafkaConsumerMetrics;
+import io.micrometer.core.instrument.binder.kafka.KafkaMetrics;
 import io.micrometer.spring.autoconfigure.MetricsAutoConfiguration;
 
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.boot.autoconfigure.jmx.JmxAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
-import javax.management.MBeanServer;
 
 import java.util.Collections;
 
 /**
- * Configuration for {@link KafkaConsumerMetrics}.
+ * Configuration for {@link KafkaMetrics}.
  *
  * @author Wardha Perinkadakattu
  * @author Chin Huang
+ * @author Oleksii Bondar
  */
 @Configuration
-@AutoConfigureAfter({MetricsAutoConfiguration.class, JmxAutoConfiguration.class})
-@ConditionalOnClass(KafkaConsumerMetrics.class)
+@AutoConfigureAfter({MetricsAutoConfiguration.class})
+@ConditionalOnClass(KafkaMetrics.class)
 @ConditionalOnBean(MeterRegistry.class)
-public class KafkaConsumerMetricsAutoConfiguration {
+public class KafkaMetricsAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    @ConditionalOnBean(MBeanServer.class)
-    @ConditionalOnProperty(value = "management.metrics.kafka.consumer.enabled", matchIfMissing = true)
-    public KafkaConsumerMetrics kafkaConsumerMetrics(MBeanServer mbeanServer) {
-        return new KafkaConsumerMetrics(mbeanServer, Collections.emptyList());
+    public KafkaMetrics kafkaConsumerMetrics() {
+        return new KafkaMetrics(Collections.emptyList());
     }
     
 }
