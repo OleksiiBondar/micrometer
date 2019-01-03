@@ -146,7 +146,7 @@ public abstract class AbstractKafkaMetrics implements MeterBinder {
 
     protected void registerMetricsEventually(String type, BiConsumer<ObjectName, Tags> perObject) {
         try {
-            Set<ObjectName> objs = mBeanServer.queryNames(new ObjectName(getJmxDomain() + ":type=" + type + ",*"), null);
+            Set<ObjectName> objs = mBeanServer.queryNames(new ObjectName(getJmxDomain() + ":type=" + type + ",client-id=*"), null);
             if (!objs.isEmpty()) {
                 for (ObjectName o : objs) {
                     perObject.accept(o, Tags.concat(tags, nameTag(o)));
