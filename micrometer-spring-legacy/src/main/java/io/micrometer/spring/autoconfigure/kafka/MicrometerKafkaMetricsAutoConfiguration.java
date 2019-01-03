@@ -16,7 +16,7 @@
 package io.micrometer.spring.autoconfigure.kafka;
 
 import io.micrometer.core.instrument.MeterRegistry;
-import io.micrometer.core.instrument.binder.kafka.KafkaMetrics;
+import io.micrometer.core.instrument.binder.kafka.MicrometerKafkaMetrics;
 import io.micrometer.spring.autoconfigure.MetricsAutoConfiguration;
 
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
@@ -29,7 +29,7 @@ import org.springframework.context.annotation.Configuration;
 import java.util.Collections;
 
 /**
- * Configuration for {@link KafkaMetrics}.
+ * Configuration for {@link MicrometerKafkaMetrics}.
  *
  * @author Wardha Perinkadakattu
  * @author Chin Huang
@@ -37,14 +37,14 @@ import java.util.Collections;
  */
 @Configuration
 @AutoConfigureAfter({MetricsAutoConfiguration.class})
-@ConditionalOnClass(KafkaMetrics.class)
+@ConditionalOnClass(MicrometerKafkaMetrics.class)
 @ConditionalOnBean(MeterRegistry.class)
-public class KafkaMetricsAutoConfiguration {
+public class MicrometerKafkaMetricsAutoConfiguration {
 
     @Bean
-    @ConditionalOnMissingBean
-    public KafkaMetrics kafkaConsumerMetrics() {
-        return new KafkaMetrics(Collections.emptyList());
+    @ConditionalOnMissingBean({ MicrometerKafkaMetrics.class })
+    public MicrometerKafkaMetrics kafkaConsumerMetrics() {
+        return new MicrometerKafkaMetrics(Collections.emptyList());
     }
     
 }

@@ -15,9 +15,12 @@
  */
 package io.micrometer.core.instrument.binder.kafka;
 
+import io.micrometer.core.instrument.Gauge;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
 import io.micrometer.core.instrument.binder.MeterBinder;
+import io.micrometer.core.lang.NonNullApi;
+import io.micrometer.core.lang.NonNullFields;
 
 import java.lang.invoke.MethodHandles;
 import java.util.Collection;
@@ -25,47 +28,60 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.apache.kafka.common.metrics.JmxReporter;
 import org.apache.kafka.common.metrics.KafkaMetric;
-import org.apache.kafka.common.metrics.MetricsReporter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * @author Oleksii Bondar
  */
-public class KafkaMetrics implements MeterBinder, MetricsReporter {
+@NonNullApi
+@NonNullFields
+public class MicrometerKafkaMetrics extends JmxReporter  implements MeterBinder {
     
     private final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
     
     private Iterable<Tag> commonTags;
     private MeterRegistry registry;
     
-    public KafkaMetrics(Iterable<Tag> tags) {
+    public MicrometerKafkaMetrics(Iterable<Tag> tags) {
+        this.commonTags = tags;
+    }
+    
+    public MicrometerKafkaMetrics(MeterRegistry registry, Iterable<Tag> tags) {
+        this.registry = registry;
         this.commonTags = tags;
     }
     
     public void configure(Map<String, ?> configs) {
-        // Does nothing
+        super.configure(configs);
+        logger.info("configure executed");
     }
     
     public void metricRemoval(KafkaMetric metric) {
-        // Does nothing
+        super.metricRemoval(metric);
     }
 
     public void close() {
-        // Does nothing
+        super.close();
+        logger.info("close executed");
     }
     
     public void init(List<KafkaMetric> metrics) {
-        metrics.forEach(this::metricChange);
+        super.init(metrics);
+        logger.info("init executed");
     }
     
     public void bindTo(MeterRegistry registry) {
-        logger.info("bindTo method invoked");
-        this.registry = registry;
+        logger.info("bindTo method invoked with {}", registry);
+        if (registry == null) {
+            this.registry = registry;
+        }
     }
 
     public void metricChange(KafkaMetric metric) {
+        super.metricChange(metric);
         logger.info("metricChange method invoked");
         String metricName = metric.metricName().name();
         Map<String, String> metricTags = metric.metricName().tags();
@@ -75,12 +91,18 @@ public class KafkaMetrics implements MeterBinder, MetricsReporter {
             return;
         }
         if (registry == null) {
+            logger.error("MeterRegistry is not initialized");
             return;
         }
 
         Collection<Tag> tags = metricTags.entrySet().stream().map(e -> Tag.of(e.getKey(), e.getValue()))
                 .collect(Collectors.toSet());
-        registry.gauge(metricName, tags, metric, m -> (Double) m.metricValue());
+//        registry.gauge(metricName, tags, metric, m -> (Double) m.metricValue());
+        
+        Gauge.builder(metricName, metric, m -> (Double) m.metricValue())
+        .tags(tags)
+        .baseUnit("na")
+        .register(registry);
     }
 
 }
