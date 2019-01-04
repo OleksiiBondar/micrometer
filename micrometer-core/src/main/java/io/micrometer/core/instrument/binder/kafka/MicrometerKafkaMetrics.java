@@ -15,10 +15,8 @@
  */
 package io.micrometer.core.instrument.binder.kafka;
 
-import io.micrometer.core.instrument.Gauge;
-import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Metrics;
 import io.micrometer.core.instrument.Tag;
-import io.micrometer.core.instrument.binder.MeterBinder;
 import io.micrometer.core.lang.NonNullApi;
 import io.micrometer.core.lang.NonNullFields;
 
@@ -28,8 +26,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.apache.kafka.common.metrics.JmxReporter;
 import org.apache.kafka.common.metrics.KafkaMetric;
+import org.apache.kafka.common.metrics.MetricsReporter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,71 +36,37 @@ import org.slf4j.LoggerFactory;
  */
 @NonNullApi
 @NonNullFields
-public class MicrometerKafkaMetrics extends JmxReporter  implements MeterBinder {
+public class MicrometerKafkaMetrics implements MetricsReporter {
     
     private final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
     
-    private Iterable<Tag> commonTags;
-    private MeterRegistry registry;
-    
-    public MicrometerKafkaMetrics(Iterable<Tag> tags) {
-        this.commonTags = tags;
-    }
-    
-    public MicrometerKafkaMetrics(MeterRegistry registry, Iterable<Tag> tags) {
-        this.registry = registry;
-        this.commonTags = tags;
-    }
-    
     public void configure(Map<String, ?> configs) {
-        super.configure(configs);
         logger.info("configure executed");
     }
     
     public void metricRemoval(KafkaMetric metric) {
-        super.metricRemoval(metric);
     }
 
     public void close() {
-        super.close();
         logger.info("close executed");
     }
     
     public void init(List<KafkaMetric> metrics) {
-        super.init(metrics);
         logger.info("init executed");
     }
     
-    public void bindTo(MeterRegistry registry) {
-        logger.info("bindTo method invoked with {}", registry);
-        if (registry == null) {
-            this.registry = registry;
-        }
-    }
-
     public void metricChange(KafkaMetric metric) {
-        super.metricChange(metric);
-        logger.info("metricChange method invoked");
         String metricName = metric.metricName().name();
         Map<String, String> metricTags = metric.metricName().tags();
-        logger.debug("Registering metric: [{}], [{}], [{}]", metricName, metricTags, metric.metricName().description());
+        logger.info("Registering metric: [{}], [{}], [{}]", metricName, metricTags, metric.metricName().description());
         if (!(metric.metricValue() instanceof Double)) {
-            logger.debug("Non-double metric: [{}] -> [{}]", metricName, metric.metricValue().getClass());
-            return;
-        }
-        if (registry == null) {
-            logger.error("MeterRegistry is not initialized");
+            logger.info("Non-double metric: [{}] -> [{}]", metricName, metric.metricValue().getClass());
             return;
         }
 
         Collection<Tag> tags = metricTags.entrySet().stream().map(e -> Tag.of(e.getKey(), e.getValue()))
                 .collect(Collectors.toSet());
-//        registry.gauge(metricName, tags, metric, m -> (Double) m.metricValue());
-        
-        Gauge.builder(metricName, metric, m -> (Double) m.metricValue())
-        .tags(tags)
-        .baseUnit("na")
-        .register(registry);
+        Metrics.gauge("kafka." + metric.metricName().name(), tags, metric, m -> (Double) m.metricValue());
     }
 
 }

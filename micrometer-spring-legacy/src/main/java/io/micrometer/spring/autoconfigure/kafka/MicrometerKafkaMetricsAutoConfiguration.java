@@ -26,8 +26,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import java.util.Collections;
-
 /**
  * Configuration for {@link MicrometerKafkaMetrics}.
  *
@@ -44,7 +42,7 @@ public class MicrometerKafkaMetricsAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean({ MicrometerKafkaMetrics.class })
     public MicrometerKafkaMetrics kafkaConsumerMetrics() {
-        return new MicrometerKafkaMetrics(Collections.emptyList());
+        return new MicrometerKafkaMetrics();
     }
     
 }
