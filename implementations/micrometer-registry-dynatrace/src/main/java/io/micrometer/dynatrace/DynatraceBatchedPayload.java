@@ -1,5 +1,5 @@
 /**
- * Copyright 2017 Pivotal Software, Inc.
+ * Copyright 2019 Pivotal Software, Inc.
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,15 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.micrometer.statsd;
+package io.micrometer.dynatrace;
 
-/**
- * Protocol for StatsD.
- *
- * @author Soroosh Sarabadani
- * @since 1.2.0
- */
-public enum StatsdProtocol {
-    UDP,
-    TCP
+class DynatraceBatchedPayload {
+    final String payload;
+    final int metricCount;
+
+    DynatraceBatchedPayload(String payload, int metricCount) {
+        this.payload = payload;
+        this.metricCount = metricCount;
+    }
 }
