@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.apache.kafka.common.MetricName;
 import org.apache.kafka.common.metrics.KafkaMetric;
 import org.apache.kafka.common.metrics.MetricsReporter;
 import org.slf4j.Logger;
@@ -56,9 +57,10 @@ public class MicrometerKafkaMetrics implements MetricsReporter {
     }
     
     public void metricChange(KafkaMetric metric) {
-        String metricName = metric.metricName().name();
-        Map<String, String> metricTags = metric.metricName().tags();
-        logger.info("Registering metric: [{}], [{}], [{}]", metricName, metricTags, metric.metricName().description());
+        MetricName metricNameRef = metric.metricName();
+        String metricName = metricNameRef.name();
+        Map<String, String> metricTags = metricNameRef.tags();
+        logger.info("Registering metric: [{}], [{}], [{}]", metricName, metricTags, metricNameRef.description());
         if (!(metric.metricValue() instanceof Double)) {
             logger.info("Non-double metric: [{}] -> [{}]", metricName, metric.metricValue().getClass());
             return;
@@ -66,7 +68,8 @@ public class MicrometerKafkaMetrics implements MetricsReporter {
 
         Collection<Tag> tags = metricTags.entrySet().stream().map(e -> Tag.of(e.getKey(), e.getValue()))
                 .collect(Collectors.toSet());
-        Metrics.gauge("kafka." + metric.metricName().name(), tags, metric, m -> (Double) m.metricValue());
+        Metrics.gauge("kafka." + metricName, tags, metric, m -> (Double) m.metricValue());
+        logger.info("Reporting metric {} with tags {}", metricName, tags);
     }
 
 }
